@@ -11,10 +11,6 @@ export default defineConfig({
     port: 5174,
     fs: {
       strict: false,
-      allow: [
-        process.cwd(),
-        "C:/PROJECT/Client/Master_Lodging ~ by Harrison/dashboard",
-      ],
     },
     proxy: {
       "/api": {
@@ -28,8 +24,6 @@ export default defineConfig({
     chunkSizeWarningLimit: 900,
     rollupOptions: {
       output: {
-        // Recharts + d3 is by far the heaviest dependency and only the dashboard
-        // route needs it. Splitting it keeps the login/auth path fast to boot.
         manualChunks(id: string) {
           if (!id.includes("node_modules")) return undefined;
           if (id.includes("recharts") || id.includes("d3-")) return "charts";

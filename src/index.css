@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Design tokens.
+
+   The console shares the public site's palette so the two never drift apart,
+   but leans on a denser type scale and tighter spacing — an operator console
+   is scanned, not read.
+   --------------------------------------------------------------------------- */
+@theme {
+  --color-brand-forest: #0e3b2c;
+  --color-brand-forest-dark: #08241b;
+  --color-brand-forest-light: #16523d;
+  --color-brand-cream: #f7f4ec;
+  --color-brand-cream-dark: #ece5d6;
+  --color-brand-gold: #c8a34d;
+  --color-brand-gold-light: #ddc07f;
+  --color-brand-azalea: #d4607a;
+  --color-brand-ink: #16201c;
+
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-card: 0 1px 2px rgba(14, 59, 44, 0.05), 0 8px 24px -14px rgba(14, 59, 44, 0.22);
+  --shadow-pop: 0 4px 12px rgba(14, 59, 44, 0.1), 0 24px 48px -20px rgba(14, 59, 44, 0.35);
+
+  --animate-fade-in: fade-in 0.16s ease-out;
+  --animate-rise-in: rise-in 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-brand-cream text-brand-ink antialiased;
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  /* A single, consistent focus ring everywhere — keyboard operators should never
+     lose their place, and this is cheaper than auditing every component. */
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    @apply outline-none ring-2 ring-brand-gold/70 ring-offset-2 ring-offset-brand-cream;
+  }
+
+  /* Tabular figures stop money columns from jittering as values change. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl bg-white p-6 shadow-card;
+  }
+
+  .card-flush {
+    @apply overflow-hidden rounded-2xl bg-white shadow-card;
+  }
+
+  .input {
+    @apply w-full rounded-lg border border-brand-forest/15 bg-white px-3.5 py-2.5 text-sm text-brand-ink transition-colors placeholder:text-brand-ink/35 hover:border-brand-forest/30 focus:border-brand-forest disabled:cursor-not-allowed disabled:bg-brand-cream/60 disabled:text-brand-ink/40;
+  }
+
+  .input-error {
+    @apply border-red-400 hover:border-red-500 focus:border-red-500;
+  }
+
+  .label {
+    @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-brand-ink/50;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap;
+  }
+
+  .th {
+    @apply px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-brand-ink/45;
+  }
+
+  .td {
+    @apply px-5 py-3.5 text-sm text-brand-ink/80;
+  }
+
+  .row {
+    @apply border-b border-brand-forest/5 transition-colors last:border-0 hover:bg-brand-cream/50;
+  }
+}
+
+/* Slim scrollbars inside panels — the browser default is far too heavy against
+   a cream surface and visually competes with the data. */
+@layer utilities {
+  .scroll-slim {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(14, 59, 44, 0.25) transparent;
+  }
+
+  .scroll-slim::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scroll-slim::-webkit-scrollbar-thumb {
+    background-color: rgba(14, 59, 44, 0.22);
+    border-radius: 999px;
+  }
+
+  .scroll-slim::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

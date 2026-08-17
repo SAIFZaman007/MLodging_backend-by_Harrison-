@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
-import { CalendarDays, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { CalendarDays, LayoutGrid, List, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
 
 import {
   useAdminProperties,
   useBookings,
   useCreateBooking,
   useDeleteBooking,
+  useOrders,
   useSyncCalendar,
   useUpdateBooking,
 } from "@/hooks/useAdminData";
@@ -21,21 +22,27 @@ import {
 } from "@/components/ui/Feedback";
 import { BookingFormModal } from "@/components/forms/BookingFormModal";
 import { SelectInput } from "@/components/ui/Field";
+import { CalendarTimeline } from "@/components/CalendarTimeline";
 import {
   BOOKING_SOURCES,
+  ORDER_STATUSES,
   eventLabel,
   formatDate,
   nightsBetween,
   sourceLabel,
+  titleCase,
 } from "@/lib/format";
 import type { Booking, BookingPayload } from "@/api/types";
 
 type Timeframe = "upcoming" | "past" | "all";
+type ViewMode = "timeline" | "list";
 
 export function CalendarPage() {
+  const [viewMode, setViewMode] = useState<ViewMode>("timeline");
   const [timeframe, setTimeframe] = useState<Timeframe>("upcoming");
   const [source, setSource] = useState("");
   const [propertyId, setPropertyId] = useState("");
+  const [orderStatus, setOrderStatus] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Booking | null>(null);
   const [deleting, setDeleting] = useState<Booking | null>(null);
@@ -46,6 +53,7 @@ export function CalendarPage() {
     property_id: propertyId,
   });
   const { data: properties } = useAdminProperties();
+  const { data: orders } = useOrders();
   const createBooking = useCreateBooking();
   const updateBooking = useUpdateBooking();
   const deleteBooking = useDeleteBooking();
@@ -163,7 +171,39 @@ export function CalendarPage() {
         </div>
       )}
 
+      {/* Filter Controls Bar */}
       <div className="flex flex-wrap items-center gap-3">
+        {/* Timeline / List Toggle */}
+        <div className="flex rounded-full border border-brand-forest/15 bg-white p-0.5 shadow-xs">
+          <button
+            type="button"
+            onClick={() => setViewMode("timeline")}
+            className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+              viewMode === "timeline"
+                ? "bg-brand-forest text-brand-cream"
+                : "text-brand-ink/55 hover:text-brand-ink"
+            }`}
+          >
+            <LayoutGrid className="h-3.5 w-3.5" />
+            Timeline
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("list")}
+            className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+              viewMode === "list"
+                ? "bg-brand-forest text-brand-cream"
+                : "text-brand-ink/55 hover:text-brand-ink"
+            }`}
+          >
+            <List className="h-3.5 w-3.5" />
+            List
+          </button>
+        </div>
+
+        <div className="hidden h-4 w-px bg-brand-forest/15 sm:block" />
+
+        {/* Timeframe selector: Upcoming / Past / All */}
         <div className="flex rounded-full border border-brand-forest/15 bg-white p-0.5">
           {(["upcoming", "past", "all"] as Timeframe[]).map((option) => (
             <button
@@ -205,6 +245,18 @@ export function CalendarPage() {
           />
         </div>
 
+        <div className="w-44">
+          <SelectInput
+            value={orderStatus}
+            placeholder="All statuses"
+            onChange={(e) => setOrderStatus(e.target.value)}
+            options={ORDER_STATUSES.map((statusKey) => ({
+              value: statusKey,
+              label: titleCase(statusKey),
+            }))}
+          />
+        </div>
+
         {visible.length > 0 && (
           <p className="ml-auto text-sm text-brand-ink/50">{visible.length} shown</p>
         )}
@@ -220,6 +272,18 @@ export function CalendarPage() {
             icon={CalendarDays}
             title={timeframe === "upcoming" ? "Nothing on the books" : "No bookings here"}
             description="Add a direct booking, block dates for maintenance, or configure an iCal feed on a property to pull in external reservations."
+          />
+        ) : viewMode === "timeline" ? (
+          <CalendarTimeline
+            bookings={visible}
+            properties={properties ?? []}
+            orders={orders ?? []}
+            selectedPropertyId={propertyId}
+            orderStatus={orderStatus}
+            onSelectBooking={(booking) => {
+              setEditing(booking);
+              setFormOpen(true);
+            }}
           />
         ) : (
           <div className="overflow-x-auto">
